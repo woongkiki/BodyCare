@@ -1,6 +1,6 @@
 # BodyCare
 
-맞춤 운동 추천 플랫폼 바디케어
+맞춤 운동 추천 플랫폼 바디케어 !
 
 yarn 또는 npm install 명령어로 node_modules 다운로드
 
