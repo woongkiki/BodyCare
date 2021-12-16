@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "581785706972",
+    "project_id": "bodycare-app-6749c",
+    "storage_bucket": "bodycare-app-6749c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:581785706972:android:699242315204fc1b0f2f19",
+        "android_client_info": {
+          "package_name": "com.bodycareapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "581785706972-f402firqkkjtusq51aer3ib7ruc6o3hc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCNajhom4brXMz7Wx104jvKlT1jyPN-4iA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "581785706972-f402firqkkjtusq51aer3ib7ruc6o3hc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
