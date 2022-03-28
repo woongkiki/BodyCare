@@ -199,6 +199,9 @@ const OrderForm = (props) => {
                                     <DefText text='최종결제금액' style={styles.totalPrice} />
                                     {
                                         itemSumPrice != '' &&
+                                        itemSumPrice == '0' ?
+                                        <DefText text={ itemSumPrice + "원"} style={styles.totalPrice} />
+                                        :
                                         <DefText text={ numberFormat(itemSumPrice) + "원"} style={styles.totalPrice} />
                                     }
                                     

@@ -10,6 +10,9 @@ import Geolocation from 'react-native-geolocation-service';
 import { StackActions } from '@react-navigation/native';
 import { connect } from 'react-redux';
 import Api from '../Api';
+import { useFocusEffect, useIsFocused } from '@react-navigation/native';
+import ToastMessage from '../components/ToastMessage';
+
 const {width} = Dimensions.get('window');
 const imgSize = width * 0.4;
 
@@ -51,7 +54,7 @@ const Trainers = (props) => {
   //permission
   const permissionGeo = async() => {
       if (Platform.OS === 'ios') {
-          Geolocation.requestAuthorization('whenInUse');
+          return await Geolocation.requestAuthorization('whenInUse');
           getGeoLocation();
 
       } else {
@@ -91,7 +94,35 @@ const Trainers = (props) => {
 
 
   useEffect(()=>{
-      requestUserPermission();
+        permissionGeo().then(result=> {
+
+            console.log('트레이너 좌표 값 승인:::',result);
+
+            if(result === 'granted'){
+                Geolocation.getCurrentPosition(
+                    position => {
+                        //console.log('position::', position);
+                        const {latitude, longitude} = position.coords;
+                        setLocation({
+                            latitude,
+                            longitude
+                        })
+
+                    
+                    },
+                    error => {
+                        console.log("err", error.code, error.message);
+                    },
+                    {
+                        showLocationDialog: true,
+                        enableHighAccuracy: true,
+                        timeout: 15000,
+                        maximumAge: 10000
+                    },
+                );
+            }
+        })
+      //requestUserPermission();
   },[])
 
   let latitudeInfo = location.latitude;
@@ -112,6 +143,8 @@ const Trainers = (props) => {
     const [trainerRealData, setTrainerRealData] = useState([]);
 
     const trainerDataReceive = async () => {
+
+        await setTrainerLoading(true);
         await Api.send('trainers_list', {'trainerSch':trainerText, 'nowlat':location.latitude, 'nowlon':location.longitude, 'loginId':loginId}, (args)=>{
             let resultItem = args.resultItem;
             let arrItems = args.arrItems;
@@ -130,22 +163,83 @@ const Trainers = (props) => {
 
     }
 
+    const isFocused = useIsFocused();
 
+    useEffect(()=>{
+        if(isFocused){
+            permissionGeo().then(result=> {
+
+                console.log('트레이너 좌표 값 승인:::',result);
     
+                if(result === 'granted'){
+                    Geolocation.getCurrentPosition(
+                        position => {
+                            //console.log('position::', position);
+                            const {latitude, longitude} = position.coords;
+                            setLocation({
+                                latitude,
+                                longitude
+                            })
+    
+                        
+                        },
+                        error => {
+                            console.log("err", error.code, error.message);
+                        },
+                        {
+                            showLocationDialog: true,
+                            enableHighAccuracy: true,
+                            timeout: 15000,
+                            maximumAge: 10000
+                        },
+                    );
+                }
+            })
+        }
+    }, [isFocused])
 
 
     useEffect(async()=>{
         if(location.latitude > 0 && location.longitude > 0){
-            await setTrainerLoading(true)
+            //await setTrainerLoading(true)
             await trainerDataReceive();
             await setMapMoveButton(true);
         }
    
     },[location, trainerText, loginId])
 
+    //정기원
 
     const refreshList = async () => {
-        await setTrainerLoading(true);
+        
+        await permissionGeo().then(result=> {
+
+            console.log('트레이너 좌표 값 승인:::',result);
+
+            if(result === 'granted'){
+                Geolocation.getCurrentPosition(
+                    position => {
+                        //console.log('position::', position);
+                        const {latitude, longitude} = position.coords;
+                        setLocation({
+                            latitude,
+                            longitude
+                        })
+
+                    
+                    },
+                    error => {
+                        console.log("err", error.code, error.message);
+                    },
+                    {
+                        showLocationDialog: true,
+                        enableHighAccuracy: true,
+                        timeout: 15000,
+                        maximumAge: 10000
+                    },
+                );
+            }
+        })
         await trainerDataReceive();
     }
 
@@ -226,7 +320,14 @@ const Trainers = (props) => {
         )
     }
 
-
+    const mapMoving = (user) => {
+        //console.log('user',user);
+        if(user != null){
+            navigation.navigate('Maps');
+        }else{
+            ToastMessage("로그인 후 이용가능합니다.");
+        }
+    }
    
 
    //console.log('location::::', location);
@@ -259,7 +360,7 @@ const Trainers = (props) => {
             {
                 parseInt(location.latitude)>0 && parseInt(location.longitude)>0 && mapMoveButton &&
                 <Box position='absolute' bottom={5} right={5}>
-                    <TouchableOpacity onPress={()=>{navigation.navigate('Maps')}}>
+                    <TouchableOpacity onPress={()=>{mapMoving(userInfo)}}>
                         <Image source={require('../images/spotIconRed.png')} alt='내위치 지도' />
                     </TouchableOpacity>
                 </Box>

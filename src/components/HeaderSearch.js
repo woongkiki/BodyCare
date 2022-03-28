@@ -1,13 +1,26 @@
 import React from 'react';
 import { Box, HStack, Text, Image, Input } from 'native-base';
 import { TouchableOpacity, StyleSheet } from 'react-native';
+import { StackActions } from '@react-navigation/native';
+import { connect } from 'react-redux';
+import { actionCreators as UserAction } from '../redux/module/action/UserAction';
+import ToastMessage from './ToastMessage';
 
 const HeaderSearch = (props) => {
 
-    const {navigation, inputValue, inputChnage, onPress, onSubmitEditing, latitudeInfo, longitudeInfo} = props;
+    const {navigation, inputValue, inputChnage, onPress, onSubmitEditing, latitudeInfo, longitudeInfo, userInfo} = props;
 
 
     //console.log('헤더:::', props);
+
+    const mapMoving = (user) => {
+        //console.log('user',user);
+        if(user != null){
+            navigation.navigate('Maps');
+        }else{
+            ToastMessage("로그인 후 이용가능합니다.");
+        }
+    }
 
 
     return (
@@ -31,7 +44,7 @@ const HeaderSearch = (props) => {
                     </TouchableOpacity>
                 </Box>
          
-                <TouchableOpacity onPress={()=>{navigation.navigate('Maps')}}>
+                <TouchableOpacity onPress={()=>{mapMoving(userInfo)}}>
                     <Image source={require('../images/mapChange.png')} alt='지도보기' />
                 </TouchableOpacity>
             </HStack>
@@ -50,4 +63,13 @@ const styles = StyleSheet.create({
     }
 })
 
-export default HeaderSearch;
+export default connect(
+    ({ User }) => ({
+        userInfo: User.userInfo, //회원정보
+    }),
+    (dispatch) => ({
+        member_login: (user) => dispatch(UserAction.member_login(user)), //로그인
+        member_info: (user) => dispatch(UserAction.member_info(user)), //회원 정보 조회
+        
+    })
+  )(HeaderSearch);

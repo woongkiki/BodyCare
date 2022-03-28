@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Text, Image, VStack, HStack, Modal} from 'native-base'
+import { Box, Text, VStack, HStack, Modal, Image} from 'native-base'
 import { TouchableOpacity, FlatList, StyleSheet, ScrollView, Dimensions, ActivityIndicator, View, Platform } from 'react-native';
 import Swiper from 'react-native-swiper';
 import {DefText} from '../common/BOOTSTRAP';
@@ -14,12 +14,15 @@ import DeviceInfo from 'react-native-device-info';
 import Api from '../Api';
 import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 
+const {width} = Dimensions.get('window');
+let ScreenWidths = Dimensions.get('window').width;
+let ScreenWidthsHalf = ScreenWidths * 0.44;
+let ImageWidths = ScreenWidths * 0.43;
+let ScreenPaddings = Platform.OS == 'ios' ? ScreenWidths * 0.02 : ScreenWidths * 0.02;
+
 const Shop = (props) => {
 
-    let ScreenWidths = Dimensions.get('window').width;
-    let ScreenWidthsHalf = ScreenWidths * 0.44;
-    let ImageWidths = ScreenWidths * 0.43;
-    let ScreenPaddings = Platform.OS == 'ios' ? ScreenWidths * 0.02 : ScreenWidths * 0.02;
+
 
 
     let shopBannerHeight = ScreenWidths / 2.3;
@@ -182,15 +185,21 @@ const Shop = (props) => {
     })
 
     const _renderShop = ({item, index})=>{
+
+        //console.log('item:::::', item);
         return(
           
             <TouchableOpacity onPress={()=>navigation.navigate('ShopView', {'it_id':item.it_id})} key={index} style={[{width:ScreenWidths * 0.5 - 20, marginBottom:20}, (index+1) % 2 == 0 ? {marginLeft:10} : {marginLeft:20} ]}>
-                                                   
-                <Box>
-                    <Image source={{uri:item.imageUrl}} style={{width:ImageWidths, height:ImageWidths, borderRadius:5, resizeMode:'stretch'}} alt={item.it_name} />
-                </Box>
-            
-                
+                {
+                    item.it_img1 ?
+                    <Image source={{uri:'https://enbsport.com/data/item/' + item.it_img1}} style={{width:width * 0.43, height:width * 0.43, borderRadius:5, resizeMode:'contain'}} alt={item.it_name} />
+                    :
+                    <Image
+                        source={require('../images/noImage.png')}
+                        alt={item.wr_subject}
+                        style={{width:width * 0.43, height:width * 0.43, borderRadius:5, resizeMode:'contain'}}
+                    />
+                }  
                 <Box width={ImageWidths}>
                     <DefText text={ textLengthOverCut(item.it_name, 12)} style={{fontSize:14, color:'#000', marginTop:20}} />
                     <Box alignItems='flex-end' mt={2.5} >
@@ -215,6 +224,12 @@ const Shop = (props) => {
               
                 <FlatList
                     nestedScrollEnabled
+                    numColumns={2}
+                    data={itemList}
+s
+                    renderItem={_renderShop}
+                    keyExtractor={(item, index)=>index.toString()}
+                    showsVerticalScrollIndicator={false}
                     ListHeaderComponent={
                         <>
                             {
@@ -268,17 +283,13 @@ const Shop = (props) => {
                             }
                         </>
                     }
-                    data={itemList}
                    
-                    renderItem={_renderShop}
-                    keyExtractor={(item, index)=>index.toString()}
-                    showsVerticalScrollIndicator={false}
                     ListEmptyComponent={
                         <Box py={10} alignItems='center'>
                             <DefText text='등록된 상품정보가 없습니다.' style={{color:'#666'}} />
                         </Box>                
                     }
-                    numColumns={2}
+                    
                    
                 />
                

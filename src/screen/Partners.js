@@ -13,6 +13,8 @@ import Font from '../common/Font';
 
 import messaging from '@react-native-firebase/messaging';
 import Api from '../Api';
+import { useFocusEffect, useIsFocused } from '@react-navigation/native';
+import ToastMessage from '../components/ToastMessage';
 
 const {width} = Dimensions.get('window');
 const imgSize = width * 0.4;
@@ -40,7 +42,7 @@ const Partners = ( props ) => {
   //permission
   const permissionGeo = async() => {
       if (Platform.OS === 'ios') {
-          Geolocation.requestAuthorization('whenInUse');
+            return await Geolocation.requestAuthorization('whenInUse');
           getGeoLocation();
 
       } else {
@@ -53,6 +55,7 @@ const Partners = ( props ) => {
             }
         )
         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+            console.log('android::', granted);
             getGeoLocation();
         } else {
             console.log("GPS permission denied") // permission denied
@@ -100,13 +103,14 @@ const Partners = ( props ) => {
 
     const [partnersRealData, setPartnersRealData] = useState([]);
     const partnersDataReceive = async () => {
-        
+
+            await setPartnersLoading(true);
             await Api.send('contents_partners', {'partnersSch':partnersSchText, 'nowlat':location.latitude, 'nowlon':location.longitude, 'loginId':loginId}, (args)=>{
                 let resultItem = args.resultItem;
                 let arrItems = args.arrItems;
 
                 if(resultItem.result === 'Y' && arrItems) {
-                    console.log('결과 출력 파트너스 리스트 : ', resultItem);
+                    console.log('결과 출력 파트너스 리스트 11 : ', resultItem);
                     
                     setPartnersRealData(arrItems);
                 }else{
@@ -120,7 +124,35 @@ const Partners = ( props ) => {
     const [mapMoveButton, setMapMoveButton] = useState(false);
 
     useEffect(()=>{
-        requestUserPermission();
+        permissionGeo().then(result=> {
+
+            console.log('파트너사 좌표 값 승인:::',result);
+
+            if(result === 'granted'){
+                Geolocation.getCurrentPosition(
+                    position => {
+                        //console.log('position::', position);
+                        const {latitude, longitude} = position.coords;
+                        setLocation({
+                            latitude,
+                            longitude
+                        })
+
+                    
+                    },
+                    error => {
+                        console.log("err", error.code, error.message);
+                    },
+                    {
+                        showLocationDialog: true,
+                        enableHighAccuracy: true,
+                        timeout: 15000,
+                        maximumAge: 10000
+                    },
+                );
+            }
+        })
+        //requestUserPermission();
     },[])
 
     //console.log(location);
@@ -128,7 +160,7 @@ const Partners = ( props ) => {
 
     useEffect(async()=>{
         if(location.latitude > 0 && location.longitude > 0){
-            await setPartnersLoading(true);
+            //await setPartnersLoading(true);
             await partnersDataReceive();
             await setMapMoveButton(true);
         }
@@ -136,9 +168,72 @@ const Partners = ( props ) => {
 
 
     const refreshList = async () => {
-        await setPartnersLoading(true);
+        //await setPartnersLoading(true);
+        await permissionGeo().then(result=> {
+
+            console.log('파트너사 좌표 값 승인:::',result);
+
+            if(result === 'granted'){
+                Geolocation.getCurrentPosition(
+                    position => {
+                        //console.log('position::', position);
+                        const {latitude, longitude} = position.coords;
+                        setLocation({
+                            latitude,
+                            longitude
+                        })
+
+                    
+                    },
+                    error => {
+                        console.log("err", error.code, error.message);
+                    },
+                    {
+                        showLocationDialog: true,
+                        enableHighAccuracy: true,
+                        timeout: 15000,
+                        maximumAge: 10000
+                    },
+                );
+            }
+        })
         await partnersDataReceive();
     }
+
+    const isFocused = useIsFocused();
+
+    useEffect(()=>{
+        if(isFocused){
+            permissionGeo().then(result=> {
+
+                console.log('파트너사 좌표 값 승인:::',result);
+    
+                if(result === 'granted'){
+                    Geolocation.getCurrentPosition(
+                        position => {
+                            //console.log('position::', position);
+                            const {latitude, longitude} = position.coords;
+                            setLocation({
+                                latitude,
+                                longitude
+                            })
+    
+                        
+                        },
+                        error => {
+                            console.log("err", error.code, error.message);
+                        },
+                        {
+                            showLocationDialog: true,
+                            enableHighAccuracy: true,
+                            timeout: 15000,
+                            maximumAge: 10000
+                        },
+                    );
+                }
+            })
+        }
+    }, [isFocused])
 
 
     function getDistanceFromLatLonInKm(lat1,lng1,lat2,lng2) { 
@@ -152,6 +247,15 @@ const Partners = ( props ) => {
         var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
         var d = R * c; // Distance in km 
         return d; 
+    }
+
+    const mapMoving = (user) => {
+        //console.log('user',user);
+        if(user != null){
+            navigation.navigate('Maps');
+        }else{
+            ToastMessage("로그인 후 이용가능합니다.");
+        }
     }
 
 
@@ -255,7 +359,7 @@ const Partners = ( props ) => {
             {
                 parseInt(location.latitude)>0 && parseInt(location.longitude)>0 && mapMoveButton &&
                 <Box position='absolute' bottom={5} right={5}>
-                    <TouchableOpacity onPress={()=>{navigation.navigate('Maps')}}>
+                    <TouchableOpacity onPress={()=>{mapMoving(userInfo)}}>
                         <Image source={require('../images/spotIconRed.png')} alt='내위치 지도' />
                     </TouchableOpacity>
                 </Box>

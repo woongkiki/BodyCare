@@ -33,7 +33,7 @@ const TrainersList = (props) => {
             let arrItems = args.arrItems;
 
             if(resultItem.result === 'Y' && arrItems) {
-                console.log('결과 출력 : ', resultItem);
+                console.log('결과 출력 : ', arrItems);
                 setTrainerLoading(false);
                 setTrainerRealData(arrItems);
             }else{

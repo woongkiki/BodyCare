@@ -178,7 +178,8 @@ const Cart = ( props ) => {
               // CartItemDataReceive();
 
             }else{
-                console.log('결과 출력 실패!');
+                console.log(resultItem);
+                setCartItemTotalPrice('0');
             }
         });
 

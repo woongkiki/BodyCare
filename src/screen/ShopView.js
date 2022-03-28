@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import { Box, Text, Image, VStack, HStack, Modal} from 'native-base'
-import { TouchableOpacity, FlatList, StyleSheet, ScrollView, Dimensions, Platform, Share, ActivityIndicator } from 'react-native';
+import { TouchableOpacity, FlatList, StyleSheet, ScrollView, Dimensions, Platform, Share, ActivityIndicator, View } from 'react-native';
 import {DefText} from '../common/BOOTSTRAP';
 import HeaderDef from '../components/HeaderDef';
 import Font from '../common/Font';
@@ -13,11 +13,16 @@ import { connect } from 'react-redux';
 import { actionCreators as UserAction } from '../redux/module/action/UserAction';
 import Api from '../Api';
 import ToastMessage from '../components/ToastMessage';
+import Swiper from 'react-native-swiper';
 
 const ScreenWidthsHalf = Dimensions.get('window').width * 0.5;
 const ScreenWidths = Dimensions.get('window').width;
 
+
 const ShopView = (props) => {
+
+
+    console.log('디바이스 크기', ScreenWidths);
 
     const {navigation, route, userInfo} = props;
 
@@ -80,6 +85,8 @@ const ShopView = (props) => {
 
     const [shopItemDetail, setShopItemDetail] = useState('');
 
+    const [shopItemThumb, setShopItemThumb] = useState([]);
+
     const shopItemView = () => {
         Api.send('shop_shopView', {'itid':params.it_id}, (args)=>{
             let resultItem = args.resultItem;
@@ -87,11 +94,12 @@ const ShopView = (props) => {
 
             if(resultItem.result === 'Y' && arrItems) {
 
-                console.log('상품 결과 뷰 : ', arrItems.it_explan);
+                console.log('상품 결과 뷰 : ', arrItems);
                 //setShopItemDataReal(arrItems);
-                setShopItemDetail(arrItems);
-                setOrPrice( parseInt(arrItems.it_price_or) );
-                setSellPrice( parseInt(arrItems.it_price) );
+                setShopItemDetail(arrItems.itemView);
+                setOrPrice( parseInt(arrItems.itemView.it_price_or) );
+                setSellPrice( parseInt(arrItems.itemView.it_price) );
+                setShopItemThumb(arrItems.thumb)
                 shopItemReview();
 
             }else{
@@ -104,6 +112,9 @@ const ShopView = (props) => {
         shopItemView();
     },[])
 
+    useEffect(()=>{
+        //console.log('tq', shopItemThumb);
+    }, [shopItemThumb])
 
     const [shopReviewAvg, setShopReviewAvg] = useState('');
     const [shopReviewAvgNumber, setShopReviewAvgNumber] = useState('');
@@ -198,6 +209,14 @@ const ShopView = (props) => {
         });
     }
 
+    const shopItemThumbData = shopItemThumb.map((item, index)=> {
+        return (
+            <Box key={index}>
+                <Image source={{uri:item}} alt={shopItemDetail.it_name} width={ScreenWidths} height={ScreenWidths / 1.2} resizeMode='stretch' />
+            </Box>
+        )
+    })
+
     return (
         <Box flex={1} bg='#fff'>
             <HeaderDef navigation={navigation} headertitle={shopItemDetail.it_name} />
@@ -205,9 +224,44 @@ const ShopView = (props) => {
                 shopItemDetail != '' ? 
                 <ScrollView>
                     <VStack>
-                        <Box>
-                            <Image source={{uri:shopItemDetail.imageUrl}} alt={shopItemDetail.it_name} width={ScreenWidths} height={260} resizeMode='contain' />
-                        </Box>
+                       
+                            <Swiper loop={true} height={ScreenWidths / 1.2}
+                                
+                                dot={
+                                    <View
+                                    style={{
+                                        backgroundColor: 'transparent',
+                                        width: 5,
+                                        height: 5,
+                                        borderRadius: 5,
+                                        marginLeft: 10,
+                                    }}
+                                    />
+                                }
+                                activeDot={
+                                <View
+                                    style={{
+                                    backgroundColor: 'transparent',
+                                    width: 5,
+                                    height: 5,
+                                    borderRadius: 5,
+                                    marginLeft: 10,
+                                    }}
+                                />
+                                }
+                                paginationStyle={{
+                                    bottom: '10%',
+                                    
+                                }}
+                            >
+                                {
+                                    shopItemThumb.length > 0 &&
+                                    shopItemThumbData
+                                }
+                            </Swiper>
+                  
+                        
+                
                         <Box p={5} pb={0}>
                             <DefText text={shopItemDetail.it_name} style={{fontSize:16, fontFamily:Font.RobotoBold}} />
                             {/* <DefText
@@ -412,7 +466,7 @@ const ShopView = (props) => {
                         <Modal.Body>
                             <DefText text={textLengthOverCut(shopItemDetail.it_name, 25)} style={{fontSize:17, color:'#191919', fontFamily:Font.RobotoBold}} />
                             <HStack mt={5}>
-                                <Image source={{uri:shopItemDetail.imageUrl}} alt='이미지 썸네일' width='60px' height='60px' mr={5} />
+                                <Image source={{uri:shopItemThumb[0]}} alt='이미지 썸네일' width='60px' height='60px' mr={5} />
                                 <VStack justifyContent='space-around'  width={ScreenWidths-130}>
                                     <DefText text={shopItemDetail.it_name} />
                                     <HStack justifyContent='space-between' alignItems='center' >

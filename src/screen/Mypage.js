@@ -55,9 +55,12 @@ const Mypage = (props) => {
             // );
             
              ToastMessage('로그아웃 합니다.');
-             navigation.dispatch(
-                 StackActions.replace('Tab_Navigation')
-             );
+            // navigation.goBack();
+
+             await navigation.reset({
+                routes: [{ name: 'Tab_Navigation', screen: 'Home' }],
+            });
+
 
             // Alert.alert('tq?')
         }catch(e){

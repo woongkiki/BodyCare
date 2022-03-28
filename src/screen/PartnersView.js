@@ -567,16 +567,7 @@ const PartnersView = (props) => {
                                             marginBottom:20
                                         }} 
                                     />
-                             
-                                    {/* <HTML 
-                                        ignoredStyles={[ 'width', 'height', 'margin', 'padding', 'fontFamily', 'lineHeight', 'fontSize']}
-                                        ignoredTags={['head', 'script', 'src']}
-                                        imagesMaxWidth={Dimensions.get('window').width - 40}
-                                        source={{html: partnersViewData && partnersViewData.wr_content}} 
-                                        tagsStyles={StyleHtml} 
-                                        containerStyle={{ flex: 1, }}
-                                        contentWidth={Dimensions.get('window').width}  
-                                    /> */}
+
                                     <RenderHtml 
                                         
                                         source={{html:partnersViewData && partnersViewData.wr_content }} 

@@ -34,6 +34,7 @@ const PartnersLogin = (props) => {
     
             if(!idPassword){
                 ToastMessage('비밀번호를 입력하세요.');
+                return false;
             }
     
             const formData = new FormData();
@@ -52,6 +53,7 @@ const PartnersLogin = (props) => {
             }else{
                 //console.log(login.msg);
                 ToastMessage(login.msg);
+                return false;
             }
         }catch(e){
             console.log(e);

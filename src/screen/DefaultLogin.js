@@ -14,6 +14,8 @@ const DefaultLogin = (props) => {
 
     const {navigation, member_login} = props;
 
+    //console.log('nav', navigation)
+
     const [idText, setIdText] = useState('');
     const _idChangeText = text => {
         setIdText(text);
@@ -27,35 +29,43 @@ const DefaultLogin = (props) => {
 
     const handleLoginBtn = async () => {
 
-        try{
-            if(!idText){
-                ToastMessage('아이디를 입력하세요.');
-                return false;
-            }
-    
-            if(!idPassword){
-                ToastMessage('비밀번호를 입력하세요.');
-            }
-    
-            const formData = new FormData();
-            formData.append('ids', idText);
-            formData.append('pwds', idPassword);
-            formData.append('method', 'member_login');
-    
-            const login = await member_login(formData);
-    
-            if(login.state){
-                navigation.dispatch(
-                    StackActions.replace('Tab_Navigation', {msg:'안녕하세요..'})
-                );
-                //console.log(login.result.mb_id);
-            }else{
-                //console.log(login);
-                ToastMessage(login.msg);
-            }
-        }catch(e){
-            console.log('실패');
+
+        if(!idText){
+            ToastMessage('아이디를 입력하세요.');
+            return false;
         }
+
+        if(!idPassword){
+            ToastMessage('비밀번호를 입력하세요.');
+            return false;
+        }
+
+        const formData = new FormData();
+        formData.append('ids', idText);
+        formData.append('pwds', idPassword);
+        formData.append('method', 'member_login');
+
+        const login = await member_login(formData);
+       // console.log('로그인 완료', login);
+
+
+        if(login.state){
+
+            //navigation.reset('Home');
+            await ToastMessage(login.msg);
+
+            await navigation.reset({
+                routes: [{ name: 'Tab_Navigation', screen: 'Home' }],
+            });
+
+            //console.log(login);
+        }else{
+            
+            //console.log(login);
+            ToastMessage(login.msg);
+            return false;
+        }
+
         
     }
 

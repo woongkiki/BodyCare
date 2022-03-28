@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Text, Box, Image } from 'native-base';
-import { StyleSheet, Dimensions, ScrollView, TouchableOpacity, PermissionsAndroid, RefreshControl, View, ActivityIndicator, FlatList, Linking } from 'react-native';
+import { StyleSheet, Dimensions, ScrollView, TouchableOpacity, PermissionsAndroid, RefreshControl, View, ActivityIndicator, FlatList, Linking, Platform } from 'react-native';
 import HeaderMain from '../components/HeaderMain';
 import {DefText} from '../common/BOOTSTRAP';
 import Font from '../common/Font';
@@ -14,6 +14,7 @@ import Geolocation from 'react-native-geolocation-service';
 import Swiper from 'react-native-swiper';
 import { textLengthOverCut } from '../common/dataFunction';
 import DeviceInfo from 'react-native-device-info';
+import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 const contImgWidth = (width - 40) * 0.4;
@@ -49,6 +50,8 @@ const Home = (props) => {
 
     //permission
     const permissionGeo = async() => {
+
+        
         try{
             if (Platform.OS === 'ios') {
                 return await Geolocation.requestAuthorization('whenInUse');
@@ -57,6 +60,7 @@ const Home = (props) => {
                 getGeoLocation();
     
             } else {
+                console.log('안드로이드 작동....');
                 const granted = await PermissionsAndroid.request(
                     PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
                     {
@@ -92,23 +96,80 @@ const Home = (props) => {
         );
     }
 
-    // const requestUserPermission = async() => {
-    //     permissionGeo().th;
-    // }
+
     useEffect(()=>{
+
+        if(Platform.OS === 'ios'){
+            permissionGeo().then(result=> {
+
+                console.log('ios result',result);
+
+                if(result === 'granted'){
+                    Geolocation.getCurrentPosition(
+                        position => {
+                            //console.log('position::', position);
+                            const {latitude, longitude} = position.coords;
+                            setLocation({
+                                latitude,
+                                longitude
+                            })
+
+                        
+                        },
+                        error => {
+                            console.log("err", error.code, error.message);
+                        },
+                        {
+                            showLocationDialog: true,
+                            enableHighAccuracy: true,
+                            timeout: 15000,
+                            maximumAge: 10000
+                        },
+                    );
+                }
+            })
+        }
+
+        if(Platform.OS === 'android'){
+            permissionGeo();
+        }
+    }, [])
+
+
+    let latitudeInfo = location.latitude;
+    let longitudeInfo = location.longitude;
+
+    //로그인시
+    useEffect(()=>{
+        if(userInfo){
+            //ToastMessage(userInfo.mb_name+'님 반갑습니다.');
+            setMbIds(userInfo.mb_id);
+        }
+    },[]);
+
+    
+
+    useEffect(()=>{
+
+        //console.log('로그인된 아이디', mbIds);
+        setLoginId(mbIds);
+
+        if(Platform.OS === 'ios'){
         permissionGeo().then(result=> {
 
-            console.log('result',result);
+            console.log('로그인 후 좌표...',result);
 
             if(result === 'granted'){
                 Geolocation.getCurrentPosition(
                     position => {
-                        console.log('position::', position);
+                        console.log('로그인 후 좌표...', position);
                         const {latitude, longitude} = position.coords;
                         setLocation({
                             latitude,
                             longitude
                         })
+
+                    
                     },
                     error => {
                         console.log("err", error.code, error.message);
@@ -121,26 +182,14 @@ const Home = (props) => {
                     },
                 );
             }
-        })
-    }, [])
+            })
+        }
 
-
-    let latitudeInfo = location.latitude;
-    let longitudeInfo = location.longitude;
-
-      //로그인시
-      useEffect(()=>{
-            if(userInfo){
-            ToastMessage(userInfo.mb_name+'님 반갑습니다.');
-            setMbIds(userInfo.mb_id);
-            }
-        },[]);
-
-        
-
-        useEffect(()=>{
-            setLoginId(mbIds);
-        },[mbIds])
+        if(Platform.OS === 'android'){
+          permissionGeo();
+        }
+        //requestUserPermission();
+    },[mbIds])
 
 
     //푸시메시지를 위한 앱 토큰 저장
@@ -156,9 +205,9 @@ const Home = (props) => {
   
             if(resultItem.result === 'Y' && arrItems) {
                 //console.log('결과 출력 : ', arrItems);
-                console.log('성공쓰 : ', resultItem);
+                //console.log('성공쓰 : ', resultItem);
             }else{
-                console.log('실패 여부 : ', resultItem);
+                //console.log('실패 여부 : ', resultItem);
             }
         });
     }
@@ -313,14 +362,16 @@ const Home = (props) => {
   //로고배너
   const [logoBanner, setLogoBanner] = useState('');
 
-    const HomeDataReceive = async () => {
+  const MainBannerRecevie = async () => {
+        await setMainSlideLoading(true);
+
         await Api.send('contents_mainBanner', {}, (args)=>{
             let resultItem = args.resultItem;
             let arrItems = args.arrItems;
 
             if(resultItem.result === 'Y' && arrItems) {
-                setMainSlideLoading(false);
-                //console.log('결과 출력 : ', arrItems);
+                
+               // console.log('메인배너 결과 출력 : ', arrItems);
                 setMainBannerDataList(arrItems);
                 //setTrainerDataMainList(arrItems);
                 
@@ -329,8 +380,10 @@ const Home = (props) => {
                 console.log('결과 출력 실패!');
             }
         });
+        await setMainSlideLoading(false);
+  }
 
-
+  const FixBannerReceive = async () => {
         await setFixBannerLoading(false);
         await Api.send('contents_fixBanner', {}, (args)=>{
             let resultItem = args.resultItem;
@@ -338,7 +391,7 @@ const Home = (props) => {
 
             if(resultItem.result === 'Y' && arrItems) {
                 
-               // console.log('결과 출력 고정배너 : ', arrItems);
+                //console.log('결과 출력 고정배너 : ', arrItems);
                 setFixBanner(arrItems);
                 //setTrainerDataMainList(arrItems);
                 
@@ -349,14 +402,36 @@ const Home = (props) => {
         });
         await setFixBannerLoading(true);
 
-        await Api.send('contents_logoBanner', {}, (args)=>{
+  }
+
+  const LogoBannerReceive =  ()=> {
+     Api.send('contents_logoBanner', {}, (args)=>{
+        let resultItem = args.resultItem;
+        let arrItems = args.arrItems;
+
+        if(resultItem.result === 'Y' && arrItems) {
+            
+            //console.log('결과 출력 로고배너:::::: ', arrItems);
+            setLogoBanner(arrItems);
+            //setTrainerDataMainList(arrItems);
+            
+
+        }else{
+            console.log('결과 출력 실패!');
+        }
+    });
+  }
+
+  const MidBannerReceive = async () => {
+         await setMidBannerLoading(true);
+        await Api.send('contents_midBanner', {}, (args)=>{
             let resultItem = args.resultItem;
             let arrItems = args.arrItems;
 
             if(resultItem.result === 'Y' && arrItems) {
                 
-                console.log('결과 출력 로고배너:::::: ', arrItems);
-                setLogoBanner(arrItems);
+            // console.log('결과 출력 : ', arrItems);
+                setMidBannerList(arrItems);
                 //setTrainerDataMainList(arrItems);
                 
 
@@ -364,54 +439,44 @@ const Home = (props) => {
                 console.log('결과 출력 실패!');
             }
         });
+        await setMidBannerLoading(false);
+  }
 
+  const PartnersReceive =  async () => {
+       
+    await setPartnersMainLoading(true);
+    await Api.send('contents_partners', {'nowlat':location.latitude, 'nowlon':location.longitude, 'mainPartners':1, 'loginId':loginId}, (args)=>{
+        let resultItem = args.resultItem;
+        let arrItems = args.arrItems;
 
-        await Api.send('contents_midBanner', {}, (args)=>{
-          let resultItem = args.resultItem;
-          let arrItems = args.arrItems;
+        if(resultItem.result === 'Y' && arrItems) {
+           // console.log('결과 출력 파트너스.. : ', resultItem);
+           //console.log('파트너스 출력/....',resultItem);
+            setPartnersDataHome(arrItems);
+        }else{
+            console.log('결과 출력 실패!');
+        }
+    });
+    await setPartnersMainLoading(false);
+  }
 
-          if(resultItem.result === 'Y' && arrItems) {
-              setMidBannerLoading(false);
-             // console.log('결과 출력 : ', arrItems);
-              setMidBannerList(arrItems);
-              //setTrainerDataMainList(arrItems);
-              
+  const TrainersReceive = async () => {
+    await setTrainersLoading(true);
+    await Api.send('trainers_list', {'nowlat':location.latitude, 'nowlon':location.longitude, 'mainTrainers':1, 'loginId':loginId}, (args)=>{
+        let resultItem = args.resultItem;
+        let arrItems = args.arrItems;
 
-          }else{
-              console.log('결과 출력 실패!');
-          }
-      });
-
-        await Api.send('contents_partners', {'nowlat':location.latitude, 'nowlon':location.longitude, 'mainPartners':1, 'loginId':loginId}, (args)=>{
-            let resultItem = args.resultItem;
-            let arrItems = args.arrItems;
-
-            if(resultItem.result === 'Y' && arrItems) {
-                //console.log('결과 출력 파트너스.. : ', resultItem);
-                
-                setPartnersDataHome(arrItems);
-            }else{
-                console.log('결과 출력 실패!');
-            }
-        });
-        await setPartnersMainLoading(false);
-
-        await Api.send('trainers_list', {'nowlat':location.latitude, 'nowlon':location.longitude, 'mainTrainers':1, 'loginId':loginId}, (args)=>{
-            let resultItem = args.resultItem;
-            let arrItems = args.arrItems;
-
-            if(resultItem.result === 'Y' && arrItems) {
-                
-                
-                setTrainerDataMainList(arrItems);
-                //console.log('트레이너 메인 ::: ', resultItem);
-            }else{
-                console.log('결과 출력 실패!');
-            }
-        });
-        await setTrainersLoading(false);
-        //console.log('트레이너 로딩 ::: ', trainersLoading);
-    }
+        if(resultItem.result === 'Y' && arrItems) {
+            
+            
+            setTrainerDataMainList(arrItems);
+            //console.log('트레이너 메인 ::: ', resultItem);
+        }else{
+            console.log('결과 출력 실패!');
+        }
+    });
+    await setTrainersLoading(false);
+  }
 
     
     useEffect( async()=>{
@@ -424,23 +489,127 @@ const Home = (props) => {
     const [mapMoveButton, setMapMoveButton] = useState(false);
 
     useEffect( async()=>{
+
+        console.log('좌표 값 변화::::', location);
+
         if(location.latitude>0 && location.longitude > 0) {
-            await setTrainersLoading(true);
-            await setPartnersMainLoading(true)
-            await HomeDataReceive();
+          //  await setTrainersLoading(true);
+          //  await setPartnersMainLoading(true)
+            //await HomeDataReceive();
             await setMapMoveButton(true)
+            await PartnersReceive();
+            await TrainersReceive();
         }
       //console.log(location)
     },[location, loginId])
 
-
+    useEffect(async()=>{
+        await MainBannerRecevie();
+        await FixBannerReceive();
+        await LogoBannerReceive();
+        await MidBannerReceive();
+    }, [])
 
 
     const refreshList = async() =>{
-      await requestUserPermission();
-      await HomeDataReceive();
+        //await requestUserPermission();
+        //await HomeDataReceive();
+        await MainBannerRecevie();
+        await FixBannerReceive();
+        await LogoBannerReceive();
+        await MidBannerReceive();
+
+        if(Platform.OS === 'ios'){
+            await permissionGeo().then(result=> {
+
+                console.log('포커스 result',result);
+
+                if(result === 'granted'){
+                    Geolocation.getCurrentPosition(
+                        position => {
+                            console.log('position::', position);
+                            const {latitude, longitude} = position.coords;
+                            setLocation({
+                                latitude,
+                                longitude
+                            })
+
+                        
+                        },
+                        error => {
+                            console.log("err", error.code, error.message);
+                        },
+                        {
+                            showLocationDialog: true,
+                            enableHighAccuracy: true,
+                            timeout: 15000,
+                            maximumAge: 10000
+                        },
+                    );
+                }
+            })
+        }
+
+
+        if(Platform.OS === 'android'){
+            await permissionGeo();
+        }
+        
+
     }
 
+    const isFocused = useIsFocused();
+
+    useEffect( async () => {
+      
+        if (isFocused){
+          console.log('포커스온123123');
+          //await requestUserPermission();
+          //await HomeDataReceive();
+          await MainBannerRecevie();
+          await FixBannerReceive();
+          await LogoBannerReceive();
+          await MidBannerReceive();
+
+
+          if(Platform.OS === 'ios'){
+                await permissionGeo().then(result=> {
+
+                    console.log('포커스 result',result);
+
+                    if(result === 'granted'){
+                        Geolocation.getCurrentPosition(
+                            position => {
+                                console.log('position::', position);
+                                const {latitude, longitude} = position.coords;
+                                setLocation({
+                                    latitude,
+                                    longitude
+                                })
+
+                            
+                            },
+                            error => {
+                                console.log("err", error.code, error.message);
+                            },
+                            {
+                                showLocationDialog: true,
+                                enableHighAccuracy: true,
+                                timeout: 15000,
+                                maximumAge: 10000
+                            },
+                        );
+                    }
+                })
+            }
+         
+        }
+        if(Platform.OS === 'android'){
+            await permissionGeo();
+
+        }
+          
+      }, [isFocused]);
 
     //console.log(props);
     //console.log('위치정보::::', location);
