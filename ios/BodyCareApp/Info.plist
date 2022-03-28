@@ -34,34 +34,34 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSApplicationCategoryType</key>
 	<array>
 		<string></string>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>NSAppTransportSecurity</key>
 	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
-		<key>NSExceptionDomains</key>
-		<dict>
-			<key>localhost</key>
-			<dict>
-				<key>NSExceptionAllowsInsecureHTTPLoads</key>
-				<true/>
-			</dict>
-		</dict>
-	</dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <true/>
+        <key>NSExceptionDomains</key>
+        <dict>
+            <key>localhost</key>
+            <dict>
+                <key>NSExceptionAllowsInsecureHTTPLoads</key>
+                <true/>
+            </dict>
+        </dict>
+    </dict>
+
 	<key>NSCameraUsageDescription</key>
 	<string>Allow access to your camera</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>프로그램이 작동하기 위하여 위치허용이 필요합니다.</string>
+	<string>사용자의 위치기반으로 주변에 등록된 파트너사 및 트레이너 정보를 불러오기 위하여 위치를 허용해주세요.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>프로그램이 작동하기 위하여 위치허용이 필요합니다.</string>
+	<string>사용자의 위치기반으로 주변에 등록된 파트너사 및 트레이너 정보를 불러오기 위하여 위치를 허용해주세요.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>프로그램이 작동하기 위하여 위치허용이 필요합니다.</string>
+	<string>사용자의 위치기반으로 주변에 등록된 파트너사 및 트레이너 정보를 불러오기 위하여 위치를 허용해주세요.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Allow access to your photo gallery</string>
 	<key>UIAppFonts</key>

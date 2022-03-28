@@ -23,7 +23,8 @@
       android:roundIcon="@mipmap/ic_launcher_round"
       android:allowBackup="false"
       android:theme="@style/AppTheme"
-      android:usesCleartextTraffic="true">
+      android:usesCleartextTraffic="true"
+      android:largeHeap="true">
         <meta-data  android:name="com.dieam.reactnativepushnotification.notification_foreground"
             android:value="false"/>
         <!-- Change the resource name to your App's accent color - or any other color you want -->
